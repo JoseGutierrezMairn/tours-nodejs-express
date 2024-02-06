@@ -4,7 +4,7 @@
   "description": "natours project in mongodb and node express",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon server.js"
   },
   "author": "Andres Jose Gutierrez Marin",
   "license": "ISC",

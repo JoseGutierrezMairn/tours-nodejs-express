@@ -1,88 +1,122 @@
-const fs = require('fs');
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`));
-
-exports.checkId = (req, res, next, value) => {
-    console.log(`El valor de value es: ${value}`);
-    if (value * 1 > tours.length) {
-        return res.status(404).json({
-            status: 'failure',
-            message: 'Invalid ID'
-        });
-    }
-    next();
-}
-
-exports.checkBody = (req, res, next) => {
-    console.log('Checking the body');
-    const { body } = req;
-    if (!(body.hasOwnProperty('name') && body.hasOwnProperty('price'))) {
-        return res.status(400).json({
-            status: 'failure',
-            message: 'Body does not contain required properties'
-        });
-    }
-    next();
-}
+const Tour = require('./../models/tourModel');
 
 exports.getAllTours = (req, res) => {
-    console.log(req.requestTime);
-    res
-        .status(200)
-        .json({
+    Tour.find().then(data => {
+        res.status(200).json({
             status: 'success',
-            data: { tours }
+            message: 'Query successfully executed',
+            data: {
+                tours: data
+            }
+        })
+    })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                status: 'failure',
+                message: 'Internal Server Error',
+                data: null
+            });
         });
 };
 
 exports.getTourById = (req, res) => {
-    const id = req.params.id * 1;
-    const tour = tours.find(t => t.id === id);
-    var statusCode = 200;
-    var status = 'success';
-    if (!tour) {
-        statusCode = 404;
-        status = 'not found'
-    }
-    res
-        .status(statusCode)
-        .json({
-            status: status,
-            data: { tour }
+    Tour.findById(req.params.id).then(data => {
+        if (data !== null) {
+            res.status(200).json({
+                status: 'success',
+                message: 'Query successfully executed',
+                data: {
+                    tour: data
+                }
+            });
+        } else {
+            res.status(404).json({
+                status: 'success',
+                message: 'Tour not found',
+                data: null
+            });
+        }
+    })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                status: 'failure',
+                message: 'Internal Server Error',
+                data: null
+            });
         });
 };
 
 exports.createTour = (req, res) => {
     const { body } = req;
-    const newId = tours[tours.length - 1].id + 1;
-    const newTour = Object.assign({ id: newId }, body);
-    tours.push(newTour);
-    fs.writeFile(`${__dirname}/../dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
-        if (err) console.log('Could not update the database');
+    Tour.create(body).then(data => {
         res.status(201).json({
             status: 'success',
-            data: { tour: newTour }
+            message: 'Tour has been created',
+            data: { tour: data }
         });
     })
-
-};
-
-exports.deleteTourById = (req, res) => {
-    const id = req.params.id * 1;
-    const newTours = tours.filter(tour => tour.id !== id);
-    fs.writeFile(`${__dirname}/../dev-data/data/tours-simple.json`, JSON.stringify(newTours), err => {
-        if (err) {
+        .catch(err => {
             console.log(err);
             res.status(500).json({
                 status: 'failure',
+                message: 'Unable to save the document',
                 data: null
-            })
-            console.log('Could not delete de tour from database');
-        }
-        else {
+            });
+        })
+};
+
+exports.updateTour = (req, res) => {
+    const { id } = req.params;
+    const { body } = req;
+    console.log(id);
+    console.log(body);
+    Tour.findOneAndUpdate(id, body, {
+        runValidators: true,
+        upsert: false,
+        new: true
+    })
+        .then(data => {
             res.status(200).json({
                 status: 'success',
-                data: null
-            })
+                message: 'Tour has been updated',
+                data: { tour: data }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                status: 'failure',
+                message: 'Internal Server Error',
+                data: { tour: data }
+            });
+        });
+}
+
+
+exports.deleteTourById = (req, res) => {
+    Tour.findByIdAndDelete(req.params.id).then(data => {
+        if (data !== null) {
+            return res.status(200).json({
+                status: 'success',
+                message: 'Tour has been deleted',
+                data: { tour: data }
+            });
         }
+        return res.status(404).json({
+            status: 'failure',
+            message: 'Tour not found',
+            data: { tour: data }
+        });
     })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                status: 'failure',
+                message: 'Unable to delete the document',
+                data: null
+            });
+        });
+
 };

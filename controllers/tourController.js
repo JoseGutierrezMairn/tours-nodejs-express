@@ -70,26 +70,32 @@ exports.createTour = (req, res) => {
 exports.updateTour = (req, res) => {
     const { id } = req.params;
     const { body } = req;
-    console.log(id);
-    console.log(body);
-    Tour.findOneAndUpdate(id, body, {
+    Tour.findByIdAndUpdate(id, body, {
         runValidators: true,
         upsert: false,
         new: true
     })
         .then(data => {
-            res.status(200).json({
-                status: 'success',
-                message: 'Tour has been updated',
-                data: { tour: data }
+            if (data !== null) {
+                return res.status(200).json({
+                    status: 'success',
+                    message: 'Tour has been updated',
+                    data: { tour: data }
+                });
+            }
+            res.status(404).json({
+                status: 'failure',
+                message: 'Tour not found',
+                data: null
             });
+
         })
         .catch(err => {
             console.log(err);
             res.status(500).json({
                 status: 'failure',
                 message: 'Internal Server Error',
-                data: { tour: data }
+                data: null
             });
         });
 }
@@ -107,7 +113,7 @@ exports.deleteTourById = (req, res) => {
         return res.status(404).json({
             status: 'failure',
             message: 'Tour not found',
-            data: { tour: data }
+            data: null
         });
     })
         .catch(err => {

@@ -1,7 +1,11 @@
 const Tour = require('./../models/tourModel');
 
 exports.getAllTours = (req, res) => {
-    Tour.find().then(data => {
+    const query = { ...req.query };
+    const elementsToDelete = ['page', 'sort', 'limit', 'fields'];
+    elementsToDelete.forEach(el => delete query[el]);
+
+    Tour.find(query).then(data => {
         res.status(200).json({
             status: 'success',
             message: 'Query successfully executed',

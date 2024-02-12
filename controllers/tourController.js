@@ -1,18 +1,26 @@
 const Tour = require('./../models/tourModel');
 
-exports.getAllTours = (req, res) => {
+exports.fixQueryFilters = (req, res, next) => {
+    let queryParams = JSON.stringify(req.query);
+    queryParams = queryParams.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`);
+    queryParams = queryParams.replace(',', ' ');
+    req.query = JSON.parse(queryParams);
+    next();
+};
+
+exports.getAllTours = async (req, res) => {
     const query = { ...req.query };
     const elementsToDelete = ['page', 'sort', 'limit', 'fields'];
     elementsToDelete.forEach(el => delete query[el]);
-
-    Tour.find(query).then(data => {
+    console.log(req.query);
+    Tour.find(query).sort(req.query.sort).then(data => {
         res.status(200).json({
             status: 'success',
             message: 'Query successfully executed',
             data: {
                 tours: data
             }
-        })
+        });
     })
         .catch(err => {
             console.log(err);

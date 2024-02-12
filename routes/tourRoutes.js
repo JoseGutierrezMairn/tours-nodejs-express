@@ -5,6 +5,9 @@ const router = express.Router();
 
 // router.param('id', tourController.checkId);
 
+
+router.use(tourController.fixQueryFilters);
+
 router
     .route('/')
     .get(tourController.getAllTours)

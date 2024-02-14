@@ -159,3 +159,45 @@ exports.deleteTourById = (req, res) => {
         });
 
 };
+
+
+exports.getTourStats = async (req, res) => {
+    try {
+        const stats = await Tour.aggregate([
+            {
+                $match: { ratingsAverage: { $gte: 4.5 } }
+            },
+            {
+                $group: {
+                    _id: { $toUpper: '$difficulty' },
+                    numTours: { $sum: 1 },
+                    numRatings: { $sum: '$ratingsQuantity' },
+                    avgRating: { $avg: '$ratingsAverage' },
+                    avgPrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' },
+                }
+            },
+            {
+                $sort: { avgPrice: 1 }
+            },
+            // {
+            //     $match: { _id: { $ne: 'EASY' } }
+            // }
+        ]);
+
+        return res.status(200).json({
+            status: 'success',
+            data: {
+                stats: { stats }
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            status: 'failure',
+            message: 'Unable to get information from data base',
+            data: null
+        });
+    }
+}

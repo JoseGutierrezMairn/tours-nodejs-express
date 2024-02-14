@@ -1,5 +1,6 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
+const { route } = require('./tourRoutes');
 
 const router = express.Router();
 
@@ -9,6 +10,10 @@ const router = express.Router();
 router.use(tourController.fixQueryFilters);
 router.use(tourController.setFieldsFromQuery);
 router.use(tourController.setSortParam);
+
+router
+    .route('/tour-stats')
+    .get(tourController.getTourStats)
 
 router
     .route('/')

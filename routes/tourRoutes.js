@@ -7,6 +7,8 @@ const router = express.Router();
 
 
 router.use(tourController.fixQueryFilters);
+router.use(tourController.setFieldsFromQuery);
+router.use(tourController.setSortParam);
 
 router
     .route('/')

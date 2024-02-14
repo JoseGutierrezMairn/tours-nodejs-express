@@ -12,6 +12,10 @@ router.use(tourController.setFieldsFromQuery);
 router.use(tourController.setSortParam);
 
 router
+    .route('/monthly-plan/:year')
+    .get(tourController.getMonthlyPlan)
+
+router
     .route('/tour-stats')
     .get(tourController.getTourStats)
 
